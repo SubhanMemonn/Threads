@@ -1,10 +1,9 @@
 import express from "express";
-import verifyJWT from "../middlewares/auth.middleware.js";
 import {
     createPost, deletePost, getFeedPosts, getPost, getUserPosts, likeUnlikePost,
     replyToPost
-} from "../controllers/post.controller.js"
-import upload from "../middlewares/multer.middleware.js";
+} from "../controllers/post.controller.js";
+import verifyJWT from "../middlewares/auth.middleware.js";
 
 const router = express.Router()
 
