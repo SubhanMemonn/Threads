@@ -6,6 +6,7 @@ import { Link, Navigate } from "react-router-dom";
 import { LoginSuccess } from "../redux/reducer/userReducer";
 import toast from "react-hot-toast";
 import { useLoginMutation } from "../redux/api/userAPI";
+import { Spinner } from "flowbite-react";
 const Login = () => {
   const dispatch = useDispatch();
   const [password, setPassword] = useState("");
@@ -68,14 +69,13 @@ const Login = () => {
               type="submit"
               disabled={loading}
             >
-              Login
+              {loading ? <Spinner /> : "Log In"}
             </button>
           </p>
           <p className="text-center mt-4 text-slate-400">
             Don't have an account?
             <Link to={"/signup"} className="text-blue-700 cursor-pointer">
-              {" "}
-              Sign up
+              "Sign Up"
             </Link>
           </p>
         </form>

@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import { userProfileSuccess } from "../redux/reducer/userReducer";
 import { useNavigate } from "react-router-dom";
 import { useUpdateUserMutation } from "../redux/api/userAPI";
-
+import { Button, Spinner } from "flowbite-react";
 const updateProfile = () => {
   const { user } = useSelector((store) => store.user);
   const dispatch = useDispatch();
@@ -149,15 +149,17 @@ const updateProfile = () => {
               >
                 Change Password
               </Link>
-              <p className="text-center mt-8">
-                <button
+              <center>
+                <Button
                   onClick={submitHandler}
-                  className="text-xl text-white bg-slate-900 px-12 py-4 rounded-full"
                   disabled={loading}
+                  color="dark"
+                  outline
+                  className="w-26"
                 >
-                  Save
-                </button>
-              </p>
+                  {loading ? <Spinner /> : "Save"}
+                </Button>
+              </center>
             </form>
           </div>
         </div>

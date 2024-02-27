@@ -100,7 +100,7 @@ const Signup = () => {
               className="btn text-white font-semibold text-2xl mt-8 bg-slate-700 p-2 rounded-xl w-[95%] md:w-11/12 md:text-xl md:rounded-md shadow-lg hover:bg-gray-900"
               disabled={loading}
             >
-              {loading ? "Loading..." : "SignUp"}
+              {loading ? <Spinner /> : "Sign up"}
             </button>
           </p>
           <p className="text-center mt-4 text-slate-400">

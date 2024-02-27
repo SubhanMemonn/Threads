@@ -14,20 +14,19 @@ const Action = ({ liked, setLiked, user }) => {
       setLiked(true);
     }
   }, []);
-
   const likedPost = async () => {
     try {
       if (user._id) {
         setLiked(!liked);
         const { data } = await toggleLike(user._id);
+        console.log(data);
         if (data.message === "Post liked Successfully") {
-          // console.log(data);
-          navigate(`/${user.username}/${user._id}`);
           setLiked(true);
+          navigate(`/${user.postBy.username}/${user._id}`);
         }
         if (data.message === "Post Unliked Successfully") {
-          navigate(`/${user.username}/${user._id}`);
           setLiked(false);
+          navigate(`/${user.postBy.username}/${user._id}`);
         }
       } else {
         toast.error("Timeout");

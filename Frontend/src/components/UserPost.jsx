@@ -64,7 +64,7 @@ const UserPost = ({ user }) => {
         {user.post && (
           <div>
             <img
-              className="rounded-md h-96 w-full lg:h-1/2 "
+              className="rounded-md w-[95%] object-fit h-[35rem]"
               src={user.post}
               alt=""
             />

@@ -4,7 +4,8 @@ import Action from "../components/Action";
 import toast from "react-hot-toast";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Loader from "../components/Loader";
-import { useCommentMutation, useGetPostQuery } from "../redux/api/postAPI";
+import { useCommentMutation } from "../redux/api/postAPI";
+import axios from "axios";
 import TimeAgo from "../utils/TimeAgo";
 const PostPage = () => {
   const [like, setLike] = useState(false);
@@ -13,20 +14,22 @@ const PostPage = () => {
   const params = useParams();
   const navigate = useNavigate();
   const [comment] = useCommentMutation();
-  // const [Loader, setLoader] = useState(false);
-  const { data, isLoading } = useGetPostQuery(params.pid);
 
   useEffect(() => {
     // setLoader(true);
-    if (data.data) {
+    const fetch = async () => {
+      const { data } = await axios(`/api/posts/${params.pid}`);
       // console.log(data);
-      setPost(data.data);
-    } else {
-      setPost([]);
-    }
-
+      if (data.data) {
+        // console.log(data);
+        setPost(data.data);
+      } else {
+        setPost([]);
+      }
+    };
+    fetch();
     // setLoader(false);
-  }, [text, params]);
+  }, [text, params, like]);
 
   const addComment = async () => {
     try {
@@ -35,17 +38,17 @@ const PostPage = () => {
         if (data.data) {
           setText("");
           navigate(`/${post.username}/${params.pid}`);
-          // console.log(data);
         }
       }
     } catch (error) {
       toast.error("Failed to add comment");
     }
   };
-  console.log(post.length);
+
+  // const liked = post?.likes.length || 0;
   return (
     <div className=" lg:w-[48vw] lg:mx-auto w-[98%] md:w-[60vw] md:ml-[30vw] bg-zinc-950 pt-8 min-h-[100vh] pb-24">
-      {post.length === 0 || isLoading ? (
+      {post.length === 0 || Object.keys(post).length === 0 ? (
         <Loader />
       ) : (
         <div className="w-full sm:w-[80%] mx-auto flex flex-col">
@@ -84,13 +87,13 @@ const PostPage = () => {
           </div>
           <div className="text-slate-400 sm:w-[80%] sm:mx-auto mt-5 mb-4">
             <span className="mr-4">{post?.comments.length} replies</span>
-            <span>{post?.likes.length} like</span>
+            <span>{post.likes.length} like</span>
           </div>
           <div className="w-full h-16 border-slate-600 border-y flex justify-between items-center">
             <div className=" text-2xl px-2 w-full whitespace-nowrap">
               👋{" "}
               <input
-                className="bg-transparent pl-4 text-white text-xl outline-none w-[90%]"
+                className="bg-transparent pl-4 text-white text-xl w-[90%] border-none outline-none"
                 type="text"
                 value={text}
                 onChange={(e) => setText(e.target.value)}
