@@ -28,6 +28,6 @@ router.put("/update/:id", verifyJWT, updateUser);
 router.put("/password/:id", verifyJWT, changePassword);
 router.put("/freeze", verifyJWT, PrivatedAccount,);
 router.get("/me", verifyJWT, getCurrentUser,);
-router.put("/refresh-token", verifyJWT, refreshAccessToken,);
+router.post("/refresh-token", refreshAccessToken);
 
 export default router;

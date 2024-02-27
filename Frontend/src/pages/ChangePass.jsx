@@ -3,26 +3,33 @@ import React, { useState } from "react";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { useChangePasswordMutation } from "../redux/api/userAPI";
 
 const ChangePass = () => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const { user } = useSelector((store) => store.userReducer);
+  const { user } = useSelector((store) => store.user);
+  const [changePass] = useChangePasswordMutation();
   const navigate = useNavigate();
-  const submitHandler = async () => {
+  const submitHandler = async (e) => {
+    e.preventDefault();
     try {
       if (user?._id) {
-        const { data } = await axios.put(`/api/users/password/${user._id}`, {
+        const { data } = await changePass({
+          userId: user._id,
           oldPassword,
           newPassword,
         });
+        // console.log(data);
         if (data) {
           toast.success(data.message);
           navigate("/");
+        } else {
+          toast.success("Wrong password");
         }
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   };
   return (

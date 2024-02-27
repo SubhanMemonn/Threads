@@ -108,7 +108,7 @@ const followUnFollowUser = asyncHandler(async (req, res) => {
     }
     const isFollowing = currentUser.following.includes(userToModify?._id)
     if (isFollowing) {
-        await User.findByIdAndUpdate(req.user?._id, {
+        const me = await User.findByIdAndUpdate(req.user?._id, {
             $pull: {
                 following: new mongoose.Types.ObjectId(id)
             }
@@ -118,8 +118,10 @@ const followUnFollowUser = asyncHandler(async (req, res) => {
                 followers: new mongoose.Types.ObjectId(req.user?._id)
             }
         }, { new: true })
+        return res.status(200)
+            .json(new ApiResponse(200, me, "Unfollow successfully"))
     } else {
-        await User.findByIdAndUpdate(req.user?._id, {
+        const me = await User.findByIdAndUpdate(req.user?._id, {
             $push: {
                 following: new mongoose.Types.ObjectId(id)
             }
@@ -129,10 +131,11 @@ const followUnFollowUser = asyncHandler(async (req, res) => {
                 followers: new mongoose.Types.ObjectId(req.user?._id)
             }
         }, { new: true })
+        return res.status(200)
+            .json(new ApiResponse(200, me, "Following successfully"))
     }
 
-    return res.status(200)
-        .json(new ApiResponse(200, {}, "Follow Updated"))
+
 });
 
 const updateUser = asyncHandler(async (req, res) => {
@@ -161,7 +164,7 @@ const updateUser = asyncHandler(async (req, res) => {
             email,
             username,
             bio,
-            profilePic: uploadProfilePic?.url || ""
+            profilePic: uploadProfilePic?.url
         }
     }, { new: true }).select("-password -refreshToken")
 
@@ -218,7 +221,7 @@ const getUserProfile = asyncHandler(async (req, res) => {
 
             user = await User.findById(query);
         } else {
-            user = await User.findOne({
+            user = await User.find({
                 username: {
                     $regex: query,
                     $options: "i"
@@ -293,7 +296,7 @@ const PrivatedAccount = asyncHandler(async (req, res) => {
 });
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
-    const incomingRefreshToken = req.cookie.refreshToken || req.body.refreshToken;
+    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
 
     if (!incomingRefreshToken) {
         throw new ApiError(401, "Unauthorized Request")
@@ -306,14 +309,14 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         if (!user) {
             throw new ApiError(401, "Invalid Refresh Token")
         }
-        if (incomingRefreshToken !== user?.refreshAccessToken) {
+        if (incomingRefreshToken !== user?.refreshToken) {
             throw new ApiError(401, "Refresh token is expired or used")
         }
-        const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(user?._id)
+        const { accessToken } = await generateAccessAndRefereshTokens(user?._id)
 
         return res.status(200)
             .cookie("accessToken", accessToken, COOKIE_OPTIONS)
-            .cookie("refreshToken", refreshToken, COOKIE_OPTIONS)
+            // .cookie("refreshToken", refreshToken, COOKIE_OPTIONS)
             .json(
                 new ApiResponse(200,
                     { accessToken, refreshToken },

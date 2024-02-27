@@ -1,12 +1,15 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useSuggestedUserQuery } from "../redux/api/userAPI";
 
 const Leftbar = () => {
-  const [user, SetUser] = useState([]);
+  const [user, setUser] = useState([]);
+  const { data } = useSuggestedUserQuery();
+  // console.log(data);
   useEffect(() => {
-    axios.get("/api/users/suggested").then((res) => SetUser(res.data.data));
-  }, []);
+    if (data) setUser(data.data);
+  }, [data]);
   return (
     <div className="h-full hidden lg:block border-l-2 bg-black border-slate-400 w-[22%] fixed right-0 top-0">
       <h1 className="text-xl font-bold text-center mt-8 mb-8 text-white">

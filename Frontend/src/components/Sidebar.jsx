@@ -8,7 +8,7 @@ import { LuHome } from "react-icons/lu";
 import { RxAvatar } from "react-icons/rx";
 import { useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
-import { LogoutUserSuccess } from "../reducer/userReducer";
+import { LogoutUserSuccess } from "../redux/reducer/userReducer";
 const Sidebar = () => {
   const dispatch = useDispatch();
   const logOut = async () => {
@@ -59,7 +59,7 @@ const Sidebar = () => {
         </div>
       </Link>
       <Link
-        to={"/profile"}
+        to={"/Create-post"}
         className="flex pt-8 justify-center mr-4  text-white"
       >
         <div className="text-2xl">

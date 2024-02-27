@@ -3,11 +3,12 @@ import React, { useState } from "react";
 import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { userProfileSuccess } from "../reducer/userReducer";
+import { userProfileSuccess } from "../redux/reducer/userReducer";
 import { useNavigate } from "react-router-dom";
+import { useUpdateUserMutation } from "../redux/api/userAPI";
 
 const updateProfile = () => {
-  const { user } = useSelector((store) => store.userReducer);
+  const { user } = useSelector((store) => store.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [inputs, setInputs] = useState({
@@ -15,8 +16,11 @@ const updateProfile = () => {
     username: user.username,
     email: user.email,
     bio: user.bio,
+    profilePic: "",
   });
-  const [profilePic, setProfilePic] = useState("");
+  const [profile, setProfile] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [updateUser] = useUpdateUserMutation();
   // console.log(user);
   const changeImageHandler = (e) => {
     const file = e.target.files?.[0];
@@ -27,36 +31,25 @@ const updateProfile = () => {
       reader.readAsDataURL(file);
       reader.onloadend = () => {
         if (typeof reader.result === "string") {
-          setProfilePic(reader.result);
+          setProfile(reader.result);
+          setInputs({ ...inputs, profilePic: reader.result });
         }
       };
     }
   };
   const submitHandler = async (e) => {
     e.preventDefault();
-    const { name, username, email, bio } = inputs;
-    try {
-      const { data } = await axios.put(
-        `/api/users/update/${user._id}`,
-        { name, username, email, bio, profilePic },
-        {
-          Headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      // console.log("updated data", data);
-
-      if (data.data) {
-        navigate("/profile");
-        dispatch(userProfileSuccess(data.data));
-
-        toast.success(data.message);
-      } else {
-        return console.log(data.message);
-      }
-    } catch (error) {
-      toast.error(error, "Failed to updated");
+    setLoading(true);
+    const { data } = await updateUser({ userId: user?._id, inputs });
+    // console.log(data);
+    if (data.success === true) {
+      setLoading(false);
+      dispatch(userProfileSuccess(data.data));
+      toast.success(data.message);
+      navigate("/profile");
+    } else {
+      setLoading(false);
+      toast.error("Failed to updated");
     }
   };
   return (
@@ -72,8 +65,8 @@ const updateProfile = () => {
             <img
               className="w-48 h-48 rounded-full"
               src={
-                profilePic
-                  ? profilePic
+                profile
+                  ? profile
                   : user?.profilePic ||
                     "https://cdnb.artstation.com/p/assets/images/images/008/461/423/smaller_square/ivan-smolin-default-avatar.jpg?1512944873"
               }
@@ -160,6 +153,7 @@ const updateProfile = () => {
                 <button
                   onClick={submitHandler}
                   className="text-xl text-white bg-slate-900 px-12 py-4 rounded-full"
+                  disabled={loading}
                 >
                   Save
                 </button>

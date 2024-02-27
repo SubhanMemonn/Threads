@@ -2,37 +2,33 @@ import axios from "axios";
 import React, { useState } from "react";
 import { FaThreads } from "react-icons/fa6";
 import { useDispatch } from "react-redux";
-import { Link } from "react-router-dom";
-import { LoginSuccess } from "../reducer/userReducer";
+import { Link, Navigate } from "react-router-dom";
+import { LoginSuccess } from "../redux/reducer/userReducer";
 import toast from "react-hot-toast";
+import { useLoginMutation } from "../redux/api/userAPI";
 const Login = () => {
   const dispatch = useDispatch();
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [login] = useLoginMutation();
   const handleLogin = async (e) => {
     e.preventDefault();
-    try {
-      // console.log("login", password, email);
-      const { data } = await axios.post(
-        "/api/users/login",
-        { password, email },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      if ("data" in data) {
-        dispatch(LoginSuccess(data.data));
-        // console.log("login ma ho", data);
-        toast.success(data.message);
-        <Navigate to={"/"} />;
-      }
-    } catch (error) {
-      console.log(error);
-      if (error.response.status == 401) {
-        toast.error("email or password is wrong");
-      }
+    if (!email || !password) {
+      toast.error("Email or password field are required");
+    }
+    setLoading(true);
+    const res = await login({ email, password });
+
+    if (res.error) {
+      toast.error("email or password invalid");
+      setLoading(false);
+    }
+    if (res.data.success === true) {
+      setLoading(false);
+      toast.success(res.data.message);
+      dispatch(LoginSuccess(res.data.data));
+      <Navigate to={"/"} />;
     }
   };
   return (
@@ -49,7 +45,7 @@ const Login = () => {
           className="bg-zinc-950 h-full w-full mx-8 rounded-md shadow-lg flex flex-col px-8 md:-mx-96 sm:w-full md:w-4/5 mt-5"
         >
           <label className="ml-3 font-semibold text-white mb-2 mt-20">
-            Username or email
+            Email
           </label>
           <input
             className="h-10 mx-4 bg-transparent shadow-lg border-zinc-500 border rounded-md mb-8 text-white"
@@ -70,6 +66,7 @@ const Login = () => {
             <button
               className="btn text-white font-semibold text-2xl mt-8 bg-slate-700 p-2 rounded-xl w-full md:w-11/12 md:text-xl md:rounded-md shadow-lg hover:bg-gray-900"
               type="submit"
+              disabled={loading}
             >
               Login
             </button>

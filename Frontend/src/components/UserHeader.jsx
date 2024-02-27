@@ -1,19 +1,20 @@
-import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { FaInstagram, FaSignOutAlt } from "react-icons/fa";
+import { FaInstagram } from "react-icons/fa";
 import { PiDotsThreeBold } from "react-icons/pi";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
-import { LogoutUserSuccess, followUserSuccess } from "../reducer/userReducer";
-const UserHeader = ({ info, isUser }) => {
-  const { user } = useSelector((store) => store.userReducer);
-
+import { Link, useNavigate } from "react-router-dom";
+import { useToggleFollowMutation } from "../redux/api/userAPI";
+import { followUserSuccess } from "../redux/reducer/userReducer";
+const UserHeader = ({ info }) => {
+  const { user } = useSelector((store) => store.user);
+  const [toggleFollow] = useToggleFollowMutation();
   const dispatch = useDispatch();
-
+  const navigate = useNavigate();
+  // console.log(info);
   const [isFollow, setIsFollow] = useState(false);
-
+  // console.log(user);
   useEffect(() => {
-    if (info?.followers.includes(user?._id)) {
+    if (user?.following.includes(info._id)) {
       setIsFollow(true);
     }
   }, []);
@@ -21,12 +22,11 @@ const UserHeader = ({ info, isUser }) => {
   const followToggler = async (userId) => {
     setIsFollow(!isFollow);
     if (userId) {
-      const { data } = await axios.post(`/api/users/follow/${userId}`);
+      const { data } = await toggleFollow(userId);
       console.log(data);
       if (data) {
-        dispatch(followUserSuccess(data.message));
-        toast.success(data.messsage);
-        // naviage(`/${userId}`);
+        dispatch(followUserSuccess(data.data));
+        navigate(`/${info.username}`);
       }
     }
   };
@@ -55,7 +55,7 @@ const UserHeader = ({ info, isUser }) => {
         <p>{info.bio}</p>
       </div>
       <div className="flex mb-4 gap-4">
-        {isUser ? (
+        {user._id === info._id ? (
           <Link
             to={"/update"}
             className="text-white rounded-full bg-black p-2 shadow-lg hover:opacity-25"
@@ -75,14 +75,13 @@ const UserHeader = ({ info, isUser }) => {
       </div>
       <div className="justify-between flex mb-20">
         <div className="flex gap-3 items-center">
-          {isUser ? (
+          {info._id === user._id ? (
             <>
               <div className=" whitespace-nowrap">
-                {isFollow ? info.following.length + 1 : info.following.length}{" "}
-                Following
+                {user.following.length} Following
               </div>
               <div className=" whitespace-nowrap">
-                {info.followers.length} Followers
+                {user.followers.length} Followers
               </div>
             </>
           ) : (

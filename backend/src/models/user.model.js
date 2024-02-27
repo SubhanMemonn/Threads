@@ -23,7 +23,7 @@ const userSchema = new Schema({
     },
     profilePic: {
         type: String,
-        default: "https://i0.wp.com/www.howtomob.com/wp-content/uploads/2022/07/whatsapp-dp-for-boys-.jpg?ssl=1&resize=512%2C512"
+        default: "https://cdnb.artstation.com/p/assets/images/images/008/461/423/smaller_square/ivan-smolin-default-avatar.jpg?1512944873"
     },
     followers: {
         type: [String],
@@ -41,9 +41,6 @@ const userSchema = new Schema({
         type: Boolean,
         emun: [true, false],
         default: false,
-    },
-    refreshToken: {
-        type: String,
     },
 
 }, { timestamps: true })

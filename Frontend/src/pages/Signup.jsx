@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import toast from "react-hot-toast";
 import { FaThreads } from "react-icons/fa6";
 import { useDispatch } from "react-redux";
-import { RegisterSuccess } from "../reducer/userReducer";
 import { Link, Navigate } from "react-router-dom";
-import toast from "react-hot-toast";
-import axios from "axios";
+import { RegisterSuccess } from "../redux/reducer/userReducer";
+
+import { useSignupMutation } from "../redux/api/userAPI";
 const Signup = () => {
   const [inputs, setInputs] = useState({
     name: "",
@@ -12,31 +13,25 @@ const Signup = () => {
     email: "",
     password: "",
   });
-
+  const [loading, setLoading] = useState(false);
+  const [signup] = useSignupMutation();
   const dispatch = useDispatch();
-  let { username, name, password, email } = inputs;
 
   const handleSignup = async (e) => {
     e.preventDefault();
-    try {
-      console.log("signup", username, name, password, email);
-      const { data } = await axios.post(
-        "/api/users/signup",
-        { username, name, password, email },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      if ("data" in data) {
-        dispatch(RegisterSuccess(data.data));
-        // console.log("signup ma ho", data);
-        toast.success(data.message);
-        <Navigate to={"/"} />;
-      }
-    } catch (error) {
-      // console.log(error);
+    setLoading(true);
+
+    const res = await signup(inputs);
+    console.log(res);
+    if (res.error) {
+      toast.error("Useranme or Email is already exists");
+      setLoading(false);
+    }
+    if (res.data.success === true) {
+      dispatch(RegisterSuccess(res.data.data));
+      toast.success(data.message);
+      <Navigate to={"/"} />;
+      setLoading(false);
     }
   };
 
@@ -103,8 +98,9 @@ const Signup = () => {
             <button
               type="submit"
               className="btn text-white font-semibold text-2xl mt-8 bg-slate-700 p-2 rounded-xl w-[95%] md:w-11/12 md:text-xl md:rounded-md shadow-lg hover:bg-gray-900"
+              disabled={loading}
             >
-              SignUp
+              {loading ? "Loading..." : "SignUp"}
             </button>
           </p>
           <p className="text-center mt-4 text-slate-400">

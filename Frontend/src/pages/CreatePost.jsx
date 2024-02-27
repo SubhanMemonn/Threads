@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import toast from "react-hot-toast";
 import axios from "axios";
-
+import React, { useState } from "react";
+import toast from "react-hot-toast";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 const CreatePost = () => {
   const { user } = useSelector((store) => store.userReducer);
   // const dispatch = useDispatch();
@@ -10,12 +10,9 @@ const CreatePost = () => {
   const [text, setText] = useState("");
   const [postPrev, setPostPrev] = useState("");
   const [post, setPost] = useState("");
-  // console.log(user._id);
-  // console.log(post);
+
   const dispatch = useDispatch();
-  function refreshPage() {
-    window.location.reload(false);
-  }
+  const navigate = useNavigate();
   const changeImageHandler = (e) => {
     const file = e.target.files?.[0];
 
@@ -53,9 +50,7 @@ const CreatePost = () => {
 
       if (data.data) {
         toast.success(data.message);
-        // dispatch(userProfileSuccess(data.data));
-        // dispatch(currentUser());
-        refreshPage();
+        navigate("/");
       } else {
         return console.log(data.message);
       }

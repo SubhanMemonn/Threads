@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
-import { useDispatch, useSelector } from "react-redux";
 import {
   Navigate,
   Route,
@@ -23,25 +22,10 @@ import Search from "./pages/Search";
 import Signup from "./pages/Signup";
 import UserPage from "./pages/UserPage";
 import UpdateProfile from "./pages/updateProfile";
-import { LoadUserFailure, LoadUserSuccess } from "./reducer/userReducer";
+import { LoadUserFailure, LoadUserSuccess } from "./redux/reducer/userReducer";
+import { useSelector } from "react-redux";
 function App() {
-  const { isAuthenticated } = useSelector((store) => store.userReducer);
-
-  const dispatch = useDispatch();
-  const currentUser = async () => {
-    try {
-      const { data } = await axios.get("/api/users/me");
-
-      dispatch(LoadUserSuccess(data.data));
-      // console.log(data.data);
-    } catch (error) {
-      // toast.error("Login Again");
-      dispatch(LoadUserFailure());
-    }
-  };
-  useEffect(() => {
-    currentUser();
-  }, [dispatch]);
+  const { isAuthenticated } = useSelector((store) => store.user);
 
   return (
     <div

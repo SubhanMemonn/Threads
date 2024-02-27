@@ -1,22 +1,25 @@
-import React, { useState } from "react";
-import Action from "./Action";
-import { Link, useNavigate } from "react-router-dom";
-import { MdDelete } from "react-icons/md";
-import TimeAgo from "../utils/TimeAgo";
-import axios from "axios";
+import { useState } from "react";
 import toast from "react-hot-toast";
-const UserPost = ({ user, isMe }) => {
+import { MdDelete } from "react-icons/md";
+import { useSelector } from "react-redux";
+import { Link, useNavigate } from "react-router-dom";
+import { useDeletePostMutation } from "../redux/api/postAPI";
+import TimeAgo from "../utils/TimeAgo";
+import Action from "./Action";
+const UserPost = ({ user }) => {
+  const { user: me } = useSelector((store) => store.user);
   const [liked, setLiked] = useState(false);
   const navigate = useNavigate();
+  const [delPost] = useDeletePostMutation();
   const deletePost = async (userId) => {
     try {
-      const { data } = await axios.delete(`/api/posts/${userId}`);
+      const { data } = await delPost(userId);
       if (data?.message) {
         toast.success(data.message);
-        navigate("/");
+        navigate("/profile");
       }
     } catch (error) {
-      console.log(error);
+      toast.error("Failed to delete");
     }
   };
 
@@ -48,7 +51,7 @@ const UserPost = ({ user, isMe }) => {
 
           <div className="text-slate-500 flex items-center gap-2 whitespace-nowrap tracking-tighter text-sm">
             about <TimeAgo date={user?.createdAt} />
-            {isMe && (
+            {user.postBy._id === me._id && (
               <button className=" text-2xl hover:text-red-700">
                 <MdDelete onClick={() => deletePost(user._id)} />
               </button>
@@ -60,7 +63,11 @@ const UserPost = ({ user, isMe }) => {
         </div>
         {user.post && (
           <div>
-            <img className="rounded-md h-96 w-full" src={user.post} alt="" />
+            <img
+              className="rounded-md h-96 w-full lg:h-1/2 "
+              src={user.post}
+              alt=""
+            />
           </div>
         )}
         <div className=" whitespace-nowrap flex items-center">

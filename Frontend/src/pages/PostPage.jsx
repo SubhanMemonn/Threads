@@ -1,53 +1,59 @@
 import React, { useEffect, useState } from "react";
 import Action from "../components/Action";
 // import { BsThreeDots } from "react-icons/bs";
-import { Link, useParams } from "react-router-dom";
-import axios from "axios";
+import toast from "react-hot-toast";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import Loader from "../components/Loader";
+import { useCommentMutation, useGetPostQuery } from "../redux/api/postAPI";
 import TimeAgo from "../utils/TimeAgo";
-import { useNavigate } from "react-router-dom";
 const PostPage = () => {
   const [like, setLike] = useState(false);
   const [post, setPost] = useState([]);
   const [text, setText] = useState("");
   const params = useParams();
   const navigate = useNavigate();
+  const [comment] = useCommentMutation();
   // const [Loader, setLoader] = useState(false);
+  const { data, isLoading } = useGetPostQuery(params.pid);
 
   useEffect(() => {
-    const fetch = async () => {
-      // setLoader(true);
-      const { data } = await axios.get(`/api/posts/${params.pid}`);
+    // setLoader(true);
+    if (data.data) {
+      // console.log(data);
       setPost(data.data);
-      // console.log([data.data]);
-    };
-    fetch();
+    } else {
+      setPost([]);
+    }
+
     // setLoader(false);
-  }, [text]);
+  }, [text, params]);
 
   const addComment = async () => {
     try {
       if (params?.pid) {
-        const { data } = await axios.put(`/api/posts/reply/${params.pid}`, {
-          text,
-        });
+        const { data } = await comment({ postId: params.pid, text });
         if (data.data) {
           setText("");
-          navigator(`/${post.username}/${params.pid}`);
+          navigate(`/${post.username}/${params.pid}`);
           // console.log(data);
         }
       }
-    } catch (error) {}
+    } catch (error) {
+      toast.error("Failed to add comment");
+    }
   };
+  console.log(post.length);
   return (
     <div className=" lg:w-[48vw] lg:mx-auto w-[98%] md:w-[60vw] md:ml-[30vw] bg-zinc-950 pt-8 min-h-[100vh] pb-24">
-      {post.length === undefined ? (
+      {post.length === 0 || isLoading ? (
+        <Loader />
+      ) : (
         <div className="w-full sm:w-[80%] mx-auto flex flex-col">
           <div className="w-full sm:w-[80%] mx-auto flex items-center justify-between mb-5">
             <Link to={`/${post.postBy.username}`} className="flex items-center">
-              <div>
+              <div className=" overflow-hidden">
                 <img
-                  className="rounded-full w-11"
+                  className="rounded-full w-11 h-11"
                   src={
                     post?.postBy.profilePic ||
                     "https://cdnb.artstation.com/p/assets/images/images/008/461/423/smaller_square/ivan-smolin-default-avatar.jpg?1512944873"
@@ -78,9 +84,7 @@ const PostPage = () => {
           </div>
           <div className="text-slate-400 sm:w-[80%] sm:mx-auto mt-5 mb-4">
             <span className="mr-4">{post?.comments.length} replies</span>
-            <span>
-              {like ? post?.likes.length + 1 : post?.likes.length} like
-            </span>
+            <span>{post?.likes.length} like</span>
           </div>
           <div className="w-full h-16 border-slate-600 border-y flex justify-between items-center">
             <div className=" text-2xl px-2 w-full whitespace-nowrap">
@@ -130,8 +134,6 @@ const PostPage = () => {
             </div>
           ))}
         </div>
-      ) : (
-        <Loader />
       )}
     </div>
   );

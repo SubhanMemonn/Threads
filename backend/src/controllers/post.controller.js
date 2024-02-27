@@ -122,7 +122,10 @@ const replyToPost = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Post not found")
     };
 
-    if (!text) throw new ApiError(404, "Text field are required")
+    console.log(text);
+    if (!text) {
+        throw new ApiError(404, "Text field are required")
+    }
     const post = await Post.findById(postId);
     if (!post) {
         throw new ApiError(404, "Post not found")
@@ -147,8 +150,10 @@ const replyToPost = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, comment, "Comment added"))
 });
 
-const getFeedPosts = asyncHandler(async (req, res) => {
+const getTodayFeedPosts = asyncHandler(async (req, res) => {
     const user = await User.findById(req.user?._id);
+    let today = new Date()
+    today.setHours(0, 0, 0, 0)
 
     if (!user) {
         throw new ApiError(404, "User not found")
@@ -156,7 +161,24 @@ const getFeedPosts = asyncHandler(async (req, res) => {
 
     const following = user.following;
 
-    const feedPost = await Post.find({ postBy: { $in: following } }).populate("postBy").sort({ createdAt: -1 });
+    const feedPost = await Post.find({ postBy: { $in: following }, createdAt: { $gte: today } }).populate("postBy").sort({ createdAt: -1 });
+    if (!feedPost.length) {
+        throw new ApiError(400, "No post")
+    }
+    return res.status(200)
+        .json(new ApiResponse(200, feedPost, "All Feed post fetched"))
+});
+const getOldFeedPosts = asyncHandler(async (req, res) => {
+    const user = await User.findById(req.user?._id);
+    let today = new Date()
+    today.setHours(0, 0, 0, 0)
+    if (!user) {
+        throw new ApiError(404, "User not found")
+    }
+
+    const following = user.following;
+
+    const feedPost = await Post.find({ postBy: { $in: following }, createdAt: { $lte: today } }).populate("postBy").sort({ createdAt: -1 });
     if (!feedPost.length) {
         throw new ApiError(400, "No post")
     }
@@ -176,8 +198,33 @@ const getUserPosts = asyncHandler(async (req, res) => {
     return res.status(200)
         .json(new ApiResponse(200, { user, posts }, "All post fetched"))
 });
+const getRandomPosts = asyncHandler(async (req, res) => {
+    const findUser = await User.findById(req.user?._id);
+    if (!findUser) {
+        throw new ApiError(404, "User not found")
+    }
+    const post = await Post.aggregate([
+        {
+            $match: {
+                postBy: { $ne: findUser?._id }
+            }
+        }, {
+            $sample: {
+                size: 10
+            }
+        }
+    ])
+    if (!post.length) {
+        throw new ApiError(404, "No post")
+    }
+    const filterPosts = post.filter((post) => !findUser.following.includes(post.postBy))
+    return res.status(200)
+        .json(
+            new ApiResponse(200, filterPosts, "Feed post fetched")
+        )
+})
 export {
-    createPost, deletePost, getFeedPosts, getPost, getUserPosts, likeUnlikePost,
-    replyToPost
+    createPost, deletePost, getTodayFeedPosts, getPost, getUserPosts, likeUnlikePost,
+    replyToPost, getRandomPosts, getOldFeedPosts
 };
 

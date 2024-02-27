@@ -1,38 +1,39 @@
-import React from "react";
-import { FaHeart } from "react-icons/fa";
-import { FaRegComment } from "react-icons/fa";
-import { FaRotate } from "react-icons/fa6";
-import { FaShare } from "react-icons/fa";
-import axios from "axios";
+import React, { useEffect } from "react";
 import toast from "react-hot-toast";
+import { FaHeart, FaRegComment, FaShare } from "react-icons/fa";
+import { FaRotate } from "react-icons/fa6";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { useToggleLikeMutation } from "../redux/api/postAPI";
 const Action = ({ liked, setLiked, user }) => {
-  const { user: me } = useSelector((store) => store.userReducer);
+  const { user: me } = useSelector((store) => store.user);
   const navigate = useNavigate();
-
-  const actionsCheck = () => {
-    if (user?.likes.includes(me._id)) {
+  const [toggleLike] = useToggleLikeMutation();
+  useEffect(() => {
+    if (user.likes.includes(me._id)) {
       setLiked(true);
     }
-  };
-  actionsCheck();
+  }, []);
+
   const likedPost = async () => {
-    {
-      try {
-        if (user._id) {
-          setLiked(!liked);
-          const { data } = await axios.put(`/api/posts/like/${user._id}`);
-          if (data.message) {
-            console.log(data);
-            navigate(`/${user.username}/${user._id}`);
-          }
-        } else {
-          toast.error("Timeout");
+    try {
+      if (user._id) {
+        setLiked(!liked);
+        const { data } = await toggleLike(user._id);
+        if (data.message === "Post liked Successfully") {
+          // console.log(data);
+          navigate(`/${user.username}/${user._id}`);
+          setLiked(true);
         }
-      } catch (error) {
-        console.log(error);
+        if (data.message === "Post Unliked Successfully") {
+          navigate(`/${user.username}/${user._id}`);
+          setLiked(false);
+        }
+      } else {
+        toast.error("Timeout");
       }
+    } catch (error) {
+      console.log(error);
     }
   };
 
